@@ -3,11 +3,14 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Shapes;
+using System.Xml.Linq;
 
 namespace SnakeWPF.Pages
 {
@@ -17,10 +20,6 @@ namespace SnakeWPF.Pages
         private readonly SolidColorBrush _headBrush = new SolidColorBrush(Color.FromRgb(31, 71, 15));
         private readonly SolidColorBrush _bodyBrush = new SolidColorBrush(Color.FromRgb(57, 99, 41));
         private readonly ImageBrush _appleBrush;
-
-        // Кэш элементов
-        private readonly Dictionary<Snakes, List<Rectangle>> _snakeElementsCache = new Dictionary<Snakes, List<Rectangle>>();
-        private Ellipse _appleElement;
 
         public Game()
         {
@@ -36,21 +35,52 @@ namespace SnakeWPF.Pages
             _appleBrush.Freeze();
         }
 
-        public void CreateUI()
+        public async void CreateUI()
         {
             try
             {
-                Dispatcher.Invoke(() =>
+                int _d = MainWindow.mainWindow.d;
+                if (_d <= 0) _d = 1;
+
+                var previousState = MainWindow.mainWindow._ViewModelGames;
+                var currentState = MainWindow.mainWindow.ViewModelGames;
+                var previousOthers = MainWindow.mainWindow._ViewModelGamesList ?? new List<ViewModelGames>();
+                var currentOthers = MainWindow.mainWindow.ViewModelGamesList ?? new List<ViewModelGames>();
+
+                if (previousState == null || currentState == null)
+                    return;
+
+                int delay = Math.Max(1, MainWindow.mainWindow._sleep / (_d + 1));
+
+                await Dispatcher.InvokeAsync(async () =>
                 {
                     canvas.Children.Clear();
-
-                    RenderSnake(MainWindow.mainWindow.ViewModelGames.SnakesPlayer);
-
                     RenderApple();
 
-                    foreach (var gameState in MainWindow.mainWindow.ViewModelGamesList)
+                    for (int frame = 0; frame <= _d; frame++)
                     {
-                        RenderSnake(gameState.SnakesPlayer);
+                        canvas.Children.Clear();
+                        RenderApple();
+
+                        var interpolatedSnake = InterpolateSnake(
+                            previousState.SnakesPlayer,
+                            currentState.SnakesPlayer,
+                            frame, _d);
+                        RenderSnake(interpolatedSnake);
+
+                        for (int i = 0; i < Math.Min(previousOthers.Count, currentOthers.Count); i++)
+                        {
+                            var interpolatedOther = InterpolateSnake(
+                                previousOthers[i].SnakesPlayer,
+                                currentOthers[i].SnakesPlayer,
+                                frame, _d);
+                            RenderSnake(interpolatedOther);
+                        }
+
+                        if (frame < _d)
+                        {
+                            await Task.Delay(delay);
+                        }
                     }
                 });
             }
@@ -58,6 +88,41 @@ namespace SnakeWPF.Pages
             {
                 Debug.WriteLine($"Error in CreateUI: {ex.Message}");
             }
+        }
+
+        private Snakes InterpolateSnake(Snakes previous, Snakes current, int currentFrame, int totalFrames)
+        {
+            if (previous?.Points == null || current?.Points == null)
+                return current ?? previous;
+
+            if (previous.Points.Count != current.Points.Count)
+                return current;
+
+            var interpolated = new Snakes
+            {
+                Points = new List<Snakes.Point>(),
+                direction = current.direction,
+                GameOver = current.GameOver
+            };
+
+            float t = (float)currentFrame / totalFrames;
+            t = Math.Max(0, Math.Min(1, t)); // Ограничиваем от 0 до 1
+
+            for (int i = 0; i < previous.Points.Count; i++)
+            {
+                var prevPoint = previous.Points[i];
+                var currPoint = current.Points[i];
+
+                var interpolatedPoint = new Snakes.Point
+                {
+                    X = (int)(prevPoint.X + (currPoint.X - prevPoint.X) * t),
+                    Y = (int)(prevPoint.Y + (currPoint.Y - prevPoint.Y) * t)
+                };
+
+                interpolated.Points.Add(interpolatedPoint);
+            }
+
+            return interpolated;
         }
 
         private void RenderSnake(Snakes snake)
@@ -99,106 +164,6 @@ namespace SnakeWPF.Pages
             };
 
             canvas.Children.Add(apple);
-        }
-
-        public void UpdateGameLogic()
-        {
-            MoveSnake(MainWindow.mainWindow.ViewModelGames.SnakesPlayer);
-
-            foreach (var gameState in MainWindow.mainWindow.ViewModelGamesList)
-            {
-                MoveSnake(gameState.SnakesPlayer);
-            }
-        }
-
-        private void MoveSnake(Snakes snake)
-        {
-            if (snake?.Points == null || snake.Points.Count == 0 || snake.direction == Snakes.Direction.Start)
-                return;
-
-            var head = snake.Points[0];
-            var newHead = new Snakes.Point(head.X, head.Y);
-
-            switch (snake.direction)
-            {
-                case Snakes.Direction.Up:
-                    newHead.Y -= 20;
-                    break;
-                case Snakes.Direction.Down:
-                    newHead.Y += 20;
-                    break;
-                case Snakes.Direction.Left:
-                    newHead.X -= 20;
-                    break;
-                case Snakes.Direction.Right:
-                    newHead.X += 20;
-                    break;
-            }
-
-            snake.Points.Insert(0, newHead);
-            snake.Points.RemoveAt(snake.Points.Count - 1);
-        }
-
-        public void ChangeDirection(Snakes.Direction newDirection)
-        {
-            var snake = MainWindow.mainWindow.ViewModelGames.SnakesPlayer;
-
-            if ((newDirection == Snakes.Direction.Up && snake.direction != Snakes.Direction.Down) ||
-                (newDirection == Snakes.Direction.Down && snake.direction != Snakes.Direction.Up) ||
-                (newDirection == Snakes.Direction.Left && snake.direction != Snakes.Direction.Right) ||
-                (newDirection == Snakes.Direction.Right && snake.direction != Snakes.Direction.Left))
-            {
-                snake.direction = newDirection;
-            }
-        }
-
-        public bool CheckCollisions()
-        {
-            var snake = MainWindow.mainWindow.ViewModelGames.SnakesPlayer;
-            var head = snake.Points[0];
-            var apple = MainWindow.mainWindow.ViewModelGames.Points;
-
-            if (Math.Abs(head.X - apple.X) < 20 && Math.Abs(head.Y - apple.Y) < 20)
-            {
-                var tail = snake.Points[snake.Points.Count - 1];
-                snake.Points.Add(new Snakes.Point(tail.X, tail.Y));
-
-                GenerateNewApple();
-                return true;
-            }
-
-            for (int i = 1; i < snake.Points.Count; i++)
-            {
-                if (head.X == snake.Points[i].X && head.Y == snake.Points[i].Y)
-                {
-                    snake.GameOver = true;
-                    return true;
-                }
-            }
-
-            if (head.X < 0 || head.X > canvas.ActualWidth || head.Y < 0 || head.Y > canvas.ActualHeight)
-            {
-                snake.GameOver = true;
-                return true;
-            }
-
-            return false;
-        }
-
-        private void GenerateNewApple()
-        {
-            var random = new Random();
-            MainWindow.mainWindow.ViewModelGames.Points = new Snakes.Point
-            {
-                X = random.Next(1, (int)(canvas.ActualWidth / 20)) * 20,
-                Y = random.Next(1, (int)(canvas.ActualHeight / 20)) * 20
-            };
-        }
-
-        public void ClearCache()
-        {
-            _snakeElementsCache.Clear();
-            canvas.Children.Clear();
         }
     }
 }

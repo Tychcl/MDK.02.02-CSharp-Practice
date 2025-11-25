@@ -6,6 +6,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Net;
 using System.Net.Sockets;
+using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -30,7 +31,9 @@ namespace SnakeWPF
         public static MainWindow mainWindow;
         public ViewModelUserSettings ViewModelUserSettings = new ViewModelUserSettings();
         public ViewModelGames ViewModelGames = null;
+        public ViewModelGames _ViewModelGames = null;
         public List<ViewModelGames> ViewModelGamesList = null;
+        public List<ViewModelGames> _ViewModelGamesList = null;
         public static IPAddress remoteIPAddress = IPAddress.Parse("127.0.0.1");
         public static int remotePort = 5001;
         public Thread tRec;
@@ -38,6 +41,11 @@ namespace SnakeWPF
         public UdpClient receivingUdpClient;
         public Pages.Home Home = new Pages.Home();
         public Pages.Game Game = new Pages.Game();
+        //колличество промежуточных кадров
+        public int d = 10;
+        public DateTime _firstTime = new DateTime();
+        public DateTime _lastTime = new DateTime();
+        public int _sleep = 1;
 
         public MainWindow()
         {
@@ -78,31 +86,32 @@ namespace SnakeWPF
         {
             try
             {
-                Dispatcher.Invoke(() =>
-                {
-                    OpenPage(Game);
-                });
+                Dispatcher.Invoke(() => OpenPage(Game));
+
                 while (true)
                 {
                     if (ViewModelGames == null)
-                        continue;
-                    if (ViewModelGames.SnakesPlayer.GameOver)
                     {
-                        Dispatcher.Invoke(() =>
-                        {
-                            OpenPage(new Pages.GameOver());
-                        });
+                        Thread.Sleep(16); 
+                        continue;
+                    }
+
+                    if (ViewModelGames.SnakesPlayer?.GameOver == true)
+                    {
+                        Dispatcher.Invoke(() => OpenPage(new Pages.GameOver()));
+                        break; 
                     }
                     else
                     {
-                        Game.CreateUI();
-                        Thread.Sleep(50);
+                        Task.Run(() => Game.CreateUI());
+
+                        Thread.Sleep(Math.Max(16, _sleep)); 
                     }
                 }
             }
             catch (Exception ex)
             {
-                Debug.WriteLine("Возникло исключение: " + ex.ToString() + "\n " + ex.Message);
+                Debug.WriteLine("UpdUI exception: " + ex.Message);
             }
         }
 
@@ -110,6 +119,7 @@ namespace SnakeWPF
         {
             receivingUdpClient = new UdpClient(int.Parse(ViewModelUserSettings.Port));
             IPEndPoint RemoteIpEndPoint = null;
+            _firstTime = DateTime.Now;
 
             try
             {
@@ -117,24 +127,45 @@ namespace SnakeWPF
                 {
                     byte[] receiveBytes = receivingUdpClient.Receive(ref RemoteIpEndPoint);
                     string returnDate = Encoding.UTF8.GetString(receiveBytes);
-                    ViewModelGames = JsonConvert.DeserializeObject<ViewModelGames>(returnDate.ToString());
-                    if (ViewModelGames.SnakesPlayer.GameOver)
-                    {
+
+                    _lastTime = _firstTime;
+                    _firstTime = DateTime.Now;
+
+                    TimeSpan timeDiff = _firstTime - _lastTime;
+                    int _s = (int)Math.Max(0, Math.Min(timeDiff.TotalMilliseconds, int.MaxValue));
+
+                    if (_s < 16) // Минимум ~60 FPS
                         continue;
-                    }
-                    else
+
+                    _sleep = Math.Min(_s, 1000); // Ограничиваем максимум 1 секундой
+
+                    _ViewModelGames = ViewModelGames;
+                    _ViewModelGamesList = ViewModelGamesList;
+
+                    ViewModelGames = JsonConvert.DeserializeObject<ViewModelGames>(returnDate);
+
+                    if (ViewModelGames?.SnakesPlayer?.GameOver != true)
                     {
-                        receiveBytes = receivingUdpClient.Receive(ref RemoteIpEndPoint);
-                        returnDate = Encoding.UTF8.GetString(receiveBytes);
-                        ViewModelGamesList = JsonConvert.DeserializeObject<List<ViewModelGames>>(returnDate.ToString());
+                        try
+                        {
+                            receiveBytes = receivingUdpClient.Receive(ref RemoteIpEndPoint);
+                            returnDate = Encoding.UTF8.GetString(receiveBytes);
+                            ViewModelGamesList = JsonConvert.DeserializeObject<List<ViewModelGames>>(returnDate);
+                        }
+                        catch (Exception innerEx)
+                        {
+                            Debug.WriteLine($"Error receiving additional data: {innerEx.Message}");
+                            ViewModelGamesList = new List<ViewModelGames>();
+                        }
                     }
                 }
             }
             catch (Exception ex)
             {
-                Debug.WriteLine("Возникло исключение: " + ex.ToString() + "\n " + ex.Message);
+                Debug.WriteLine($"Receiver exception: {ex.Message}");
             }
         }
+
         public void Send(string datagram)
         {
             UdpClient sender = new UdpClient();

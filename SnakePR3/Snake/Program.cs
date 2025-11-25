@@ -6,6 +6,7 @@ using System.IO;
 using System.Linq;
 using System.Net;
 using System.Net.Sockets;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
 
@@ -21,6 +22,7 @@ namespace Snake
 
         static void Main(string[] args)
         {
+            
             try
             {
                 Thread tRec = new Thread(new ThreadStart(Receiver));
@@ -156,7 +158,7 @@ namespace Snake
         {
             while (true)
             {
-                Thread.Sleep(100);
+                Thread.Sleep(500);
 
                 List<ViewModelGames> RemoteSnakes = viewModelGames.FindAll(x => x.SnakesPlayer.GameOver);
 
