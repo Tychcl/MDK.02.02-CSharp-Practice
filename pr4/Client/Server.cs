@@ -3,174 +3,261 @@ using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
-using System.Text.Json.Nodes;
 using System.Threading.Tasks;
-using System.Xml.Linq;
+using System.Windows;
 
 namespace Client
 {
     public class Server
     {
         private IPAddress IP;
-        private EndPoint EndPoint;
+        private IPEndPoint EndPoint;
         private Socket Socket;
         public string Ip { get; private set; }
         public int Port { get; private set; }
-        public int ClientId { get; private set; }
-        public bool connected { get; private set; }
+        public int ClientId { get; set; }
+        public bool Connected { get; private set; }
 
-        public Server(string? ip = null, int? port = null)
+        public MainWindow MainWindow { get; set; }
+
+        public Server(string ip = "127.0.0.1", int port = 5000)
         {
             ClientId = -1;
-            connected = connect(ip, port);
+            Ip = ip;
+            Port = port;
         }
-        public bool connect(string? ip = null, int? port = null) 
+
+        public async Task<bool> ConnectAsync()
         {
             try
             {
-                ip = ip is null ? "127.0.0.1" : ip;
-                Ip = ip;
-                IP = IPAddress.Parse(ip);
-                Port = port is null ? 8080 : (int)port;
-
+                IP = IPAddress.Parse(Ip);
                 EndPoint = new IPEndPoint(IP, Port);
-                Socket = new Socket(
-                    AddressFamily.InterNetwork,
-                    SocketType.Stream,
-                    ProtocolType.Tcp);
-                Socket.Connect(EndPoint);
-                return Socket.Connected;
-                
+
+                Socket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
+
+                Socket.ReceiveTimeout = 10000;
+                Socket.SendTimeout = 10000;
+
+                await Socket.ConnectAsync(EndPoint);
+                Connected = Socket.Connected;
+
+                if (Connected)
+                {
+                    //Application.Current.Dispatcher.Invoke(() =>
+                    //{
+                    //    MessageBox.Show($"Successfully connected to {Ip}:{Port}",
+                    //        "Connection", MessageBoxButton.OK, MessageBoxImage.Information);
+                    //});
+                    return true;
+                }
             }
             catch (Exception ex)
             {
-                return false;
-                //тут тоже чето придумать надо
+                Connected = false;
+                Application.Current.Dispatcher.Invoke(() =>
+                {
+                    MessageBox.Show($"Connection failed: {ex.Message}",
+                        "Connection Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                });
             }
+            return false;
         }
 
-        public bool Send(string message)
+        private bool IsSocketConnected()
         {
             try
             {
+                if (Socket == null) return false;
 
+                bool part1 = Socket.Poll(1000, SelectMode.SelectRead);
+                bool part2 = (Socket.Available == 0);
+                if (part1 && part2)
+                    return false;
+                else
+                    return true;
+            }
+            catch
+            {
+                return false;
+            }
+        }
 
-                if (!connected)
+        public async Task<bool> SendAsync(string message, string? file = null)
+        {
+            if (!Connected || !IsSocketConnected())
+            {
+                Connected = await ConnectAsync();
+                if (!Connected|| !IsSocketConnected())
                 {
-                    //и тут обработку надо
+                    MessageBox.Show("Not connected to server");
                     return false;
                 }
-                if (!CheckCommand(message))
-                {
-                    //и тут тоже
-                    //может сделать оут переменную для сообщения ошибки?
-                    return false;
-                }
+            }
 
+            if (!CheckCommand(message))
+            {
+                MessageBox.Show("Invalid command");
+                return false;
+            }
+
+            try
+            {
+                
                 ViewModelSend send = new ViewModelSend(message, ClientId);
-                if (message.Split(new string[1] { " " }, StringSplitOptions.None)[0] == "set")
-                {
-                    string[] DataMessage = message.Split(new string[1] { " " }, StringSplitOptions.None);
-                    string Name = "";
-                    for (int i = 1; i < DataMessage.Length; i++)
-                    {
-                        if (Name == "")
-                        {
-                            Name += DataMessage[i];
-                        }
-                        else
-                        {
-                            Name += " " + DataMessage[i];
-                        }
-                    }
 
-                    if (File.Exists(Name))
+                if (message.StartsWith("set "))
+                {
+                    string[] dataMessage = message.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+                    string fileName = string.Join(" ", dataMessage, 1, dataMessage.Length - 1);
+
+                    if (File.Exists(file))
                     {
-                        FileInfo fileInfo = new FileInfo(Name);
-                        FileInfoFTP fileInfoFTP = new FileInfoFTP(File.ReadAllBytes(Name), fileInfo.Name);
+                        FileInfo fileInfo = new FileInfo(file);
+                        byte[] fileData = await File.ReadAllBytesAsync(file);
+                        FileInfoFTP fileInfoFTP = new FileInfoFTP(fileData, fileInfo.Name);
                         send = new ViewModelSend(JsonConvert.SerializeObject(fileInfoFTP), ClientId);
                     }
                     else
                     {
-                        //если файла нет чето надо сделать
+                        MessageBox.Show($"File not found: {fileName}");
+                        return false;
                     }
                 }
-                byte[] bytes = Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(send));
-                int bytesSend = Socket.Send(bytes);
-                byte[] bar = new byte[10485760];
-                int rec = Socket.Receive(bar);
-                string responce = Encoding.UTF8.GetString(bar, 0, rec);
-                ViewModelMessage mes = JsonConvert.DeserializeObject<ViewModelMessage>(responce);
-                switch (mes.Command)
+
+                string jsonData = JsonConvert.SerializeObject(send);
+                byte[] bytes = Encoding.UTF8.GetBytes(jsonData);
+
+                // Отправка данных
+                int bytesSent = await Socket.SendAsync(new ArraySegment<byte>(bytes), SocketFlags.None);
+                if (bytesSent == 0)
                 {
-                    case "autorization":
-                        ClientId = int.Parse(mes.Data);
-                        break;
-                    case "message":
-                        //тут нужен вывод на экран уведомления сообления
-                        //mes.Data
-                        break;
-                    case "cd":
-                        List<string> folders = new List<string>();
-                        folders = JsonConvert.DeserializeObject<List<string>>(mes.Data);
-                        foreach (var str in folders)
-                        {
-                            //вывод файлов и папок в окно через итем
-                        }
-                        break;
-                    case "file":
-                        string[] Datames = send.Message.Split(new string[1] { " " }, StringSplitOptions.None)
-                        string Name = "";
-                        for (int i = 1; i < Datames.Length; i++)
-                        {
-                            if (Name == "")
-                            {
-                                Name += Datames[i];
-                            }
-                            else
-                            {
-                                Name += " " + Datames[i];
-                            }
-                        }
-                        byte[] bytesar = JsonConvert.DeserializeObject<byte[]>(mes.Data);
-                        File.WriteAllBytes(Name, bytesar);
-                        break;
-                    default:
-                        return false;
+                    MessageBox.Show("Failed to send data");
+                    return false;
                 }
+
+                byte[] buffer = new byte[400000000];
+                int bytesReceived = await Socket.ReceiveAsync(new ArraySegment<byte>(buffer), SocketFlags.None);
+
+                if (bytesReceived == 0)
+                {
+                    MessageBox.Show("Server disconnected");
+                    Connected = false;
+                    return false;
+                }
+
+                string response = Encoding.UTF8.GetString(buffer, 0, bytesReceived);
+                ViewModelMessage responseMessage = JsonConvert.DeserializeObject<ViewModelMessage>(response);
+
+                await ProcessServerResponseAsync(responseMessage, message);
                 return true;
             }
             catch (Exception ex)
             {
-                //тут тоже вывод должен быть какой нибудь
+                Connected = false;
+                Application.Current.Dispatcher.Invoke(() =>
+                {
+                    MessageBox.Show($"Communication error: {ex.Message}",
+                        "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                });
                 return false;
             }
         }
 
+        private async Task ProcessServerResponseAsync(ViewModelMessage response, string originalMessage)
+        {
+            if (response == null) return;
+
+            await Application.Current.Dispatcher.InvokeAsync(async () =>
+            {
+                try
+                {
+                    switch (response.Command)
+                    {
+                        case "autorization":
+                            ClientId = int.Parse(response.Data);
+                            MessageBox.Show("Authorization successful!", "Success",
+                                MessageBoxButton.OK, MessageBoxImage.Information);
+                            break;
+
+                        case "message":
+                            if (MainWindow != null)
+                                MainWindow.ShowMessage(response.Data);
+                            break;
+
+                        case "cd":
+                            List<string> folders = JsonConvert.DeserializeObject<List<string>>(response.Data);
+                            if (MainWindow != null)
+                                MainWindow.UpdateFileList(folders);
+                            break;
+
+                        case "file":
+                            string[] messageParts = originalMessage.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+                            string fileName = string.Join(" ", messageParts, 1, messageParts.Length - 1);
+
+                            byte[] fileData = JsonConvert.DeserializeObject<byte[]>(response.Data);
+
+                            var saveDialog = new Microsoft.Win32.SaveFileDialog
+                            {
+                                FileName = fileName,
+                                Filter = "All files (*.*)|*.*"
+                            };
+
+                            if (saveDialog.ShowDialog() == true)
+                            {
+                                await File.WriteAllBytesAsync(saveDialog.FileName, fileData);
+                                MessageBox.Show($"File downloaded: {fileName}", "Success",
+                                    MessageBoxButton.OK, MessageBoxImage.Information);
+                            }
+                            break;
+                    }
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show($"Error processing response: {ex.Message}", "Error",
+                        MessageBoxButton.OK, MessageBoxImage.Error);
+                }
+            });
+        }
+
         private bool CheckCommand(string message)
         {
-            bool BCommand = false;
-            string[] DataMessage = message.Split(new string[1] { " " }, StringSplitOptions.None);
-            switch (DataMessage[0])
+            if (string.IsNullOrWhiteSpace(message)) return false;
+
+            string[] dataMessage = message.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+            if (dataMessage.Length == 0) return false;
+
+            switch (dataMessage[0])
             {
                 case "connect":
-                    BCommand = DataMessage.Length == 3;
-                    break;
+                    return dataMessage.Length == 3;
                 case "cd":
-                    BCommand = true;
-                    break;
+                    return true;
                 case "get":
-                    BCommand = DataMessage.Length == 2;
-                    break;
+                    return dataMessage.Length >= 2;
                 case "set":
-                    BCommand = DataMessage.Length == 2;
-                    break;
+                    return dataMessage.Length >= 2;
+                default:
+                    return true;
             }
-            return BCommand;
+        }
+
+        public void Disconnect()
+        {
+            try
+            {
+                Connected = false;
+                Socket?.Shutdown(SocketShutdown.Both);
+                Socket?.Close();
+                Socket?.Dispose();
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Disconnect error: {ex.Message}");
+            }
         }
     }
 }
