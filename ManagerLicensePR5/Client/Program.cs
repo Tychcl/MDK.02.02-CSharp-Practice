@@ -116,6 +116,11 @@ namespace Client
                         Console.ForegroundColor = ConsoleColor.Red;
                         Console.WriteLine("Blocked");
                         break;
+                    case "/dissconnect":
+                        Console.ForegroundColor = ConsoleColor.Red;
+                        Console.WriteLine("Dissconnected from server");
+                        socket.Close();
+                        break;
                     default:
                         ClientToken = Response;
                         ClientDateConnection = DateTime.Now;
@@ -157,7 +162,7 @@ namespace Client
                         int ByteRec = Socket.Receive(Bytes);
 
                         string Response = Encoding.UTF8.GetString(Bytes, 0, ByteRec);
-                        if (Response == "/disconnect")
+                        if (Response == "/dissconnect")
                         {
                             Console.ForegroundColor = ConsoleColor.Red;
                             Console.WriteLine("The client is disconnected from server");

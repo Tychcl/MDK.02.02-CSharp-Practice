@@ -64,7 +64,17 @@ namespace Server
             Console.WriteLine(" - set initial settings ");
 
             Console.ForegroundColor = ConsoleColor.Green;
-            Console.Write("/disconnect");
+            Console.Write("/block");
+            Console.ForegroundColor = ConsoleColor.White;
+            Console.WriteLine(" - block user ");
+
+            Console.ForegroundColor = ConsoleColor.Green;
+            Console.Write("/unblock");
+            Console.ForegroundColor = ConsoleColor.White;
+            Console.WriteLine(" - unblock user ");
+
+            Console.ForegroundColor = ConsoleColor.Green;
+            Console.Write("/dissconnect");
             Console.ForegroundColor = ConsoleColor.White;
             Console.WriteLine(" - disconnect users from the server ");
 
@@ -126,42 +136,85 @@ namespace Server
                         }
 
                         client.Token = Classes.Client.GenToken();
-                        AllClients.Add(client);
-                        Console.ForegroundColor = ConsoleColor.Red;
-                        Console.WriteLine($"New client connection: " + client.Token);
+                        client.DateConnect = DateTime.Now;
+                        var c = AllClients.Find(x => x.Id == client.Id);
+                        if (c is null)
+                        {
+                            AllClients.Add(client);
+                            Console.ForegroundColor = ConsoleColor.Red;
+                            Console.WriteLine($"New client connection: " + client.Token);
+                        }
+                        else
+                        {
+                            c.Token = client.Token;
+                            Console.ForegroundColor = ConsoleColor.Red;
+                            Console.WriteLine($"New token for {c.Login}: " + client.Token);
+                        }
+                        
                         con.SaveChanges();
                         return client.Token;
                     }
                     break;
                 default:
-                    Classes.Client Client = AllClients.Find(x => x.Token == message);
-                    return Client != null ? "/connect" : "/dissconnect";
+                    //Classes.Client Client = AllClients.Find(x => x.Token == message);
+                    return "/connect";//Client != null ? "/connect" : "/dissconnect";
             }
         }
         public static void SetCommand()
         {
             Console.ForegroundColor = ConsoleColor.Red;
-            string Command = Console.ReadLine();
-
+            string[] mes = Console.ReadLine().Split(' ');
+            string Command = mes[0];
             if (Command == "/config")
             {
                 File.Delete(Directory.GetCurrentDirectory() + "/.config");
                 OnSettings();
             }
-            else if (Command.Contains("/disconnect")) DisconnectServer(Command);
+            else if (Command.Contains("/dissconnect")) DisconnectServer(mes[1]);
             else if (Command == "/status") GetStatus();
             else if (Command == "/help") Help();
+            else if (Command == "/block")
+            {
+                using(var con = new context())
+                {
+                    var client = con.Clients.ToList().Find(x => x.Token == mes[1]);
+                    if(client is null)
+                    {
+                        Console.ForegroundColor = ConsoleColor.Red;
+                        Console.WriteLine("Client not found");
+                    }
+                    Console.ForegroundColor = ConsoleColor.White;
+                    Console.WriteLine("Blocked");
+                    client.Blocked = true;
+                    con.SaveChanges();
+                }
+            }
+            else if (Command == "/unblock")
+            {
+                using (var con = new context())
+                {
+                    var client = con.Clients.ToList().Find(x => x.Token == mes[1]);
+                    if (client is null)
+                    {
+                        Console.ForegroundColor = ConsoleColor.Red;
+                        Console.WriteLine("Client not found");
+                    }
+                    Console.ForegroundColor = ConsoleColor.White;
+                    Console.WriteLine("Unblocked");
+                    client.Blocked = false;
+                    con.SaveChanges();
+                }
+            }
         }
-        static void DisconnectServer(string сommand)
+        static void DisconnectServer(string Token)
         {
             try
             {
-                string Token = сommand.Replace("/disconnect", "").Trim();
                 Classes.Client DisconnectClient = AllClients.Find(x => x.Token == Token);
                 AllClients.Remove(DisconnectClient);
 
                 Console.ForegroundColor = ConsoleColor.White;
-                Console.Write($"Client: {Token} disconnect from server");
+                Console.WriteLine($"Client: {Token} disconnect from server");
             }
             catch (Exception exp)
             {
