@@ -7,7 +7,7 @@
              mc:Ignorable="d" 
              d:DesignHeight="100" d:DesignWidth="280">
     <Grid>
-        <Grid x:Name="Capture" Height="50" VerticalAlignment="Top"/>
+        <Grid x:Name="Cap" Height="50" VerticalAlignment="Top"/>
         <Label Content="Enter Capture:" Margin="0, 50, 0, 0" VerticalAlignment="Top"/>
         <TextBox x:Name="Input" HorizontalContentAlignment="Center" VerticalAlignment="Center"
                  Height="25" VerticalContentAlignment="Center" Margin="0, 75, 0, 0"

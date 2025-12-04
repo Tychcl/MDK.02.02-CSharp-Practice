@@ -2,8 +2,10 @@
       xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
       xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
       xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
-      xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+      xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+      xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
       xmlns:local="clr-namespace:Regin.Pages"
+      xmlns:uc="clr-namespace:Regin.Elements"
       mc:Ignorable="d"
       d:DesignHeight="450"
       d:DesignWidth="800"
@@ -22,13 +24,13 @@
                              HorizontalAlignment="Center"
                              Width="300">
             <Grid>
-                <Image x:Name="User"
+                <Image x:Name="IUser"
                        HorizontalAlignment="Center"
                        Height="100"
                        Margin="32"
                        VerticalAlignment="Top"
                        Width="100"
-                       Source="/RegIN;component/Images/ic-user.png">
+                       Source="/Images/ic-user.jpg">
                     <Image.Clip>
                         <EllipseGeometry RadiusX="50"
                                          RadiusY="50"
@@ -36,7 +38,7 @@
                     </Image.Clip>
                 </Image>
 
-                <Label x:Name="Umsubser"
+                <Label x:Name="LNameUser"
                        Margin="10,127,10,0"
                        HorizontalContentAlignment="Center"
                        Content=""
@@ -55,7 +57,7 @@
                          KeyUp="SetLogin"
                          LostFocus="SetLogin"/>
 
-                <cxc:ElementCapture x:Name="Capture"
+                <uc:Capture x:Name="Capture"
                                     HorizontalAlignment="Center"
                                     Width="280"
                                     Margin="10,213,10,0"
@@ -75,8 +77,8 @@
                 <Label Content="Forgot your password?"
                        Margin="10,373,0,0"
                        VerticalAlignment="Top"
-                       Foreground="#FF67AB2"
-                       FontSize="18"
+                       Foreground="#FF673AB2"
+                       FontSize="10"
                        MouseDown="RecoveryPassword"
                        HorizontalAlignment="Left"
                        Width="110"/>
@@ -84,9 +86,9 @@
                 <Label Content="Registration"
                        Margin="0,373,10,0"
                        VerticalAlignment="Top"
-                       Foreground="#FF67AB2"
-                       FontSize="18"
-                       MouseDown="OpenMegin"
+                       Foreground="#FF673AB2"
+                       FontSize="10"
+                       MouseDown="OpenRegin"
                        HorizontalAlignment="Right"
                        Width="62"/>
             </Grid>

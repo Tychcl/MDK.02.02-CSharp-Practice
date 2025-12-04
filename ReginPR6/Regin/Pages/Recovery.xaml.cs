@@ -17,37 +17,28 @@ using System.Windows.Media.Animation;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
-using System.Xml.Serialization;
+using static Regin.Elements.Capture;
 
 namespace Regin.Pages
 {
     /// <summary>
-    /// Логика взаимодействия для Login.xaml
+    /// Логика взаимодействия для Recovey.xaml
     /// </summary>
-    public partial class Login : Page
+    public partial class Recovery : Page
     {
         private bool correct = false;
         private string OldLogin;
         private Context con = new Context();
-        public Login()
+        public Recovery()
         {
             InitializeComponent();
         }
 
-        private void SetPassword(object sender, KeyEventArgs e)
-        {
-
-        }
-
-        private void OpenRegin(object sender, MouseButtonEventArgs e)
+        private void OpenLogin(object sender, MouseButtonEventArgs e)
         {
             MainWindow.mainWindow.frame.Navigate(new Pages.Login());
         }
 
-        private void RecoveryPassword(object sender, MouseButtonEventArgs e)
-        {
-            MainWindow.mainWindow.frame.Navigate(new Pages.Recovery());
-        }
 
         private void SetNotification(string mes, SolidColorBrush color)
         {
@@ -141,7 +132,8 @@ namespace Regin.Pages
                 catch (Exception exp)
                 {
                     Debug.WriteLine(exp.Message);
-                };
+                }
+                ;
 
                 OldLogin = TbLogin.Text;
             }

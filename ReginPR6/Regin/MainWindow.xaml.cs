@@ -16,9 +16,12 @@ namespace Regin
     /// </summary>
     public partial class MainWindow : Window
     {
+        public static MainWindow mainWindow;
         public MainWindow()
         {
             InitializeComponent();
+            mainWindow = this;
+            frame.Navigate(new Pages.Login());
         }
     }
 }

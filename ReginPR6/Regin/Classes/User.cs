@@ -13,7 +13,7 @@ namespace Regin.Classes
         public string Password { get; set; }
         public string Name { get; set; }
         public byte[] Image { get; set; }
-        public DateTime Update {  get; set; }
+        public DateTime Updated {  get; set; }
         public DateTime Created { get; set; }
         
     }

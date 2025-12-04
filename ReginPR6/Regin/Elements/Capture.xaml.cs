@@ -35,7 +35,7 @@ namespace Regin.Elements
         private void Create()
         {
             Input.Text = "";
-            Capture.Children.Clear();
+            Cap.Children.Clear();
             str = "";
             CreateBack();
             Background();
@@ -55,7 +55,7 @@ namespace Regin.Elements
                     Foreground = new SolidColorBrush(Color.FromArgb(100, (byte)random.Next(0, 255), (byte)random.Next(0, 255), (byte)random.Next(0, 255))),
                     Margin = new Thickness(random.Next(0, width - 20), random.Next(0, height - 20), 0, 0)
                 };
-                Capture.Children.Add(L);
+                Cap.Children.Add(L);
             }
         }
 
@@ -74,7 +74,7 @@ namespace Regin.Elements
                     Margin = new Thickness(width / 2 - 60 + i * 30, random.Next(-10, 10), 0, 0)
                 };
                 str += back.ToString();
-                Capture.Children.Add(L);
+                Cap.Children.Add(L);
             }
         }
         #endregion
