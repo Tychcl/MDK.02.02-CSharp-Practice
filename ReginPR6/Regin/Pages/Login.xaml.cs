@@ -27,6 +27,7 @@ namespace Regin.Pages
     public partial class Login : Page
     {
         private Common common = new Common();
+        private bool cap = false;
         public Login()
         {
             InitializeComponent();
@@ -34,6 +35,8 @@ namespace Regin.Pages
             common.LNameUser = LNameUser;
             common.IUser = IUser;
             common.OpacityProperty = OpacityProperty;
+            Capture.HandlerCorrect += delegate { cap = true; Capture.IsEnabled = false; };
+            Capture.HandlerInCorrect += delegate { cap = false; };
         }
 
         private void SetPassword(object sender, KeyEventArgs e)

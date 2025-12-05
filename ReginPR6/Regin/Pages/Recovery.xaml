@@ -64,6 +64,11 @@
                                 Height="100"
                                 VerticalAlignment="Top"/>
 
+                <Button Content="Send code" 
+                        VerticalAlignment="Bottom" 
+                        Margin="10, 0, 10, 35"
+                        Click="Button_Click"/>
+
                 <Label Content="Back"
                    Margin="0,373,10,0"
                    VerticalAlignment="Top"

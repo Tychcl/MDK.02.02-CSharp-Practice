@@ -23,6 +23,7 @@ namespace Regin.Elements
     {
         public delegate void Correct();
         public event Correct HandlerCorrect;
+        public event Correct HandlerInCorrect;
         string str = "";
         int width = 280;
         int height = 50;
@@ -86,8 +87,12 @@ namespace Regin.Elements
                 if(Input.Text != str)
                 {
                     Create();
+                    if (HandlerInCorrect is not null)
+                    {
+                        HandlerInCorrect.Invoke();
+                    }
                 }
-                if(HandlerCorrect is not null)
+                else if(HandlerCorrect is not null)
                 {
                     HandlerCorrect.Invoke();
                 }

@@ -27,6 +27,7 @@ namespace Regin.Pages
     public partial class Recovery : Page
     {
         private Common common = new Common();
+        private bool cap = false;
         public Recovery()
         {
             InitializeComponent();
@@ -34,6 +35,8 @@ namespace Regin.Pages
             common.LNameUser = LNameUser;
             common.IUser = IUser;
             common.OpacityProperty = OpacityProperty;
+            Capture.HandlerCorrect += delegate { cap = true; Capture.IsEnabled = false; };
+            Capture.HandlerInCorrect += delegate { cap = false; Capture.IsEnabled = true; };
         }
 
         private void OpenLogin(object sender, MouseButtonEventArgs e)
@@ -44,6 +47,19 @@ namespace Regin.Pages
         private void SetLogin(object sender, RoutedEventArgs e)
         {
             common.SetLogin();
+        }
+
+        private void Button_Click(object sender, RoutedEventArgs e)
+        {
+            if (!cap)
+            {
+                return;
+            }
+            if (!common.correct)
+            {
+                return;
+            }
+            MainWindow.mainWindow.frame.Navigate(new Pages.Verify(TbLogin.Text));
         }
     }
 }
