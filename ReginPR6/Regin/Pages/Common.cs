@@ -25,10 +25,10 @@ namespace Regin.Pages
         public DependencyProperty OpacityProperty { get; set; }
         private string OldLogin;
 
-        private void SetNotification(string mes, SolidColorBrush color)
+        public static void SetNotification(Label label, string mes, SolidColorBrush color)
         {
-            LNameUser.Content = mes;
-            LNameUser.Foreground = color;
+            label.Content = mes;
+            label.Foreground = color;
         }
 
         public void SetLogin()
@@ -44,12 +44,12 @@ namespace Regin.Pages
                 }
                 else
                 {
-                    SetNotification("User not found", Brushes.Red);
+                    SetNotification(LNameUser ,"User not found", Brushes.Red);
                 }
             }
             else if (!correct)
             {
-                SetNotification("Login is incorrect", Brushes.Red);
+                SetNotification(LNameUser, "Login is incorrect", Brushes.Red);
             }
             else
             {
@@ -79,7 +79,7 @@ namespace Regin.Pages
             }
 
             if (TbLogin.Text.Length > 0)
-                SetNotification("Login is incorrect", Brushes.Red);
+                SetNotification(LNameUser, "Login is incorrect", Brushes.Red);
             correct = false;
         }
 
@@ -87,7 +87,7 @@ namespace Regin.Pages
         {
             if (OldLogin != TbLogin.Text)
             {
-                SetNotification("Hi, " + User.Name, Brushes.Black);
+                SetNotification(LNameUser, "Hi, " + User.Name, Brushes.Black);
 
                 try
                 {
