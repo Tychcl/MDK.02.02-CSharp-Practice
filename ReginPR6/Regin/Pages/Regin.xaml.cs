@@ -1,5 +1,4 @@
-﻿using Aspose.Imaging;
-using Microsoft.Win32;
+﻿using Microsoft.Win32;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -28,7 +27,7 @@ namespace Regin.Pages
     {
         private bool login = false;
         private bool password = false;
-        private Bitmap? image = null;
+        private byte[]? image = null;
 
         public Regin()
         {
@@ -50,14 +49,28 @@ namespace Regin.Pages
 
         private void Button_Click(object sender, RoutedEventArgs e)
         {
-
+            if (!login)
+            {
+                Common.SetNotification(LNameUser, "Incorrect login", System.Windows.Media.Brushes.Red);
+                return;
+            }
+            if (!password)
+            {
+                Common.SetNotification(LNameUser, "Passwords not equals.", System.Windows.Media.Brushes.Red);
+                return;
+            }
+            if (!)
+            {
+                Common.SetNotification(LNameUser, "Incorrect login", System.Windows.Media.Brushes.Red);
+                return;
+            }
         }
 
         private void SetPassword(object sender, KeyEventArgs e)
         {
             if(TbPassword.Password != TbConfirmPassword.Password)
             {
-                Common.SetNotification(LNameUser, "Password not equals.", Brushes.Red);
+                Common.SetNotification(LNameUser, "Password not equals.", System.Windows.Media.Brushes.Red);
                 password = false;
             }
             else
@@ -79,7 +92,9 @@ namespace Regin.Pages
                 System.Drawing.Rectangle compressionRectangle = new System.Drawing.Rectangle
                   (0, 0, 256, 256);
                 Gr2.DrawImage(bitmap1, compressionRectangle);
-                image = bitmap2;
+                ImageConverter converter = new ImageConverter();
+                image = (byte[])converter.ConvertTo(bitmap2, typeof(byte[]));
+                IUser.Source = (BitmapImage)converter.ConvertTo(bitmap2, typeof(BitmapImage));
             }
         }
     }
