@@ -57,7 +57,7 @@
                      KeyUp="SetLogin"
                      LostFocus="SetLogin"/>
 
-                <uc:Capture x:Name="Capture"
+                <uc:Capture x:Name="Captur"
                                 HorizontalAlignment="Center"
                                 Width="280"
                                 Margin="10,213,10,0"

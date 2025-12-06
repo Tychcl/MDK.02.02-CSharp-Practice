@@ -24,11 +24,15 @@ namespace Regin.Pages
     {
         private string Code;
         private string Email;
+        private smtp._message ype;
         Thread t;
-        public Verify(string email)
+        private User? user = null;
+        public Verify(string email, smtp._message type, User? u = null)
         {
             InitializeComponent();
             Email= email;
+            ype = type;
+            user = u;
             resend(null,null);
         }
 
@@ -59,21 +63,44 @@ namespace Regin.Pages
 
         private void SetCode(object sender, RoutedEventArgs e)
         {
-            if (TbLogin.Text.Length == Code.Length && TbLogin.Text == Code)
+            try
             {
-                t = new Thread(() =>
+                if (TbLogin.Text.Length == Code.Length && TbLogin.Text == Code)
                 {
-                    string pas;
-                    smtp.send(Email, smtp._message.change, out pas);
-                    using(var con = new Context())
+                    switch (ype)
                     {
-                        var user = con.Users.ToList().Find(x => x.Login == Email);
-                        user.Password = pas;
-                        con.SaveChanges();
+                        case smtp._message.change:
+                            t = new Thread(() =>
+                            {
+                                string pas;
+                                smtp.send(Email, ype, out pas);
+                                using (var con = new Context())
+                                {
+                                    var user = con.Users.ToList().Find(x => x.Login == Email);
+                                    user.Password = pas;
+                                    con.SaveChanges();
+                                }
+                            });
+                            t.Start();
+                            MessageBox.Show("Password changed");
+                            Back(null, null);
+                            break;
+                        case smtp._message.verify:
+                            using (var con = new Context())
+                            {
+                                con.Add(user);
+                                con.SaveChanges();
+                            }
+                            MessageBox.Show("Successful registration");
+                            Back(null, null);
+                            break;
                     }
-                });
-                t.Start();
-                MessageBox.Show("Password changed");
+
+                }
+            }
+            catch(Exception ex)
+            {
+                MessageBox.Show("Ошибка: "+ex.Message);
                 Back(null, null);
             }
         }

@@ -3,7 +3,6 @@
       xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
       xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
       xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-      
       xmlns:local="clr-namespace:Regin.Pages"
       xmlns:uc="clr-namespace:Regin.Elements"
       xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
@@ -58,7 +57,7 @@
                          KeyUp="SetLogin"
                          LostFocus="SetLogin"/>
 
-                <uc:Capture x:Name="Capture"
+                <uc:Capture x:Name="Captur"
                                     HorizontalAlignment="Center"
                                     Width="280"
                                     Margin="10,213,10,0"

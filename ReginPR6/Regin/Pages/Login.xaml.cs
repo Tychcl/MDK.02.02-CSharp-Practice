@@ -35,8 +35,8 @@ namespace Regin.Pages
             common.LNameUser = LNameUser;
             common.IUser = IUser;
             common.OpacityProperty = OpacityProperty;
-            Capture.HandlerCorrect += delegate { cap = true; Capture.IsEnabled = false; };
-            Capture.HandlerInCorrect += delegate { cap = false; };
+            Captur.HandlerCorrect += delegate { cap = true; Captur.IsEnabled = false; };
+            Captur.HandlerInCorrect += delegate { cap = false; };
         }
 
         private void SetPassword(object sender, KeyEventArgs e)

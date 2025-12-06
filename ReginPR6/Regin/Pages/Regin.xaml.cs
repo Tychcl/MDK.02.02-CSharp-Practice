@@ -17,6 +17,7 @@ using System.Windows.Navigation;
 using System.Windows.Shapes;
 using System.Drawing.Imaging;
 using System.Drawing;
+using Regin.Classes;
 
 namespace Regin.Pages
 {
@@ -59,11 +60,13 @@ namespace Regin.Pages
                 Common.SetNotification(LNameUser, "Passwords not equals.", System.Windows.Media.Brushes.Red);
                 return;
             }
-            if (!)
+            if (image is null)
             {
-                Common.SetNotification(LNameUser, "Incorrect login", System.Windows.Media.Brushes.Red);
+                Common.SetNotification(LNameUser, "Select Image", System.Windows.Media.Brushes.Red);
                 return;
             }
+            User user = new User(TbLogin.Text, TbPassword.Password, TbName.Text, image);
+            MainWindow.mainWindow.frame.Navigate(new Pages.Verify(TbLogin.Text, smtp._message.verify, user));
         }
 
         private void SetPassword(object sender, KeyEventArgs e)

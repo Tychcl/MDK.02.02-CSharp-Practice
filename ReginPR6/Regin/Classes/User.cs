@@ -11,10 +11,22 @@ namespace Regin.Classes
         public int Id { get; set; }
         public string Login { get; set; }
         public string Password { get; set; }
+        public int? PinCode { get; set; }
         public string Name { get; set; }
-        public byte[] Image { get; set; }
+        public byte[]? Image { get; set; }
         public DateTime Updated {  get; set; }
         public DateTime Created { get; set; }
         
+        public User(string login,  string password,
+                    string name, byte[]? image = null, int? pincode = null)
+        {
+            Login = login;
+            Password = password;
+            PinCode = pincode;
+            Name = name;
+            Image = image;
+            Updated = DateTime.Now;
+            Created = DateTime.Now;
+        }
     }
 }
