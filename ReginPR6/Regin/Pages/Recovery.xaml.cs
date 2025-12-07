@@ -17,7 +17,6 @@ using System.Windows.Media.Animation;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
-using Regin.Elements;
 
 namespace Regin.Pages
 {
@@ -31,12 +30,13 @@ namespace Regin.Pages
         public Recovery()
         {
             InitializeComponent();
+            MainWindow.previous = MainWindow.page.recovery;
             common.TbLogin = TbLogin;
             common.LNameUser = LNameUser;
             common.IUser = IUser;
             common.OpacityProperty = OpacityProperty;
-            Captur.HandlerCorrect += delegate { cap = true; Capture.IsEnabled = false; };
-            Captur.HandlerInCorrect += delegate { cap = false; Capture.IsEnabled = true; };
+            Captur.HandlerCorrect += delegate { cap = true; Captur.IsEnabled = false; };
+            Captur.HandlerInCorrect += delegate { cap = false; Captur.IsEnabled = true; };
         }
 
         private void OpenLogin(object sender, MouseButtonEventArgs e)
@@ -60,6 +60,11 @@ namespace Regin.Pages
                 return;
             }
             MainWindow.mainWindow.frame.Navigate(new Pages.Verify(TbLogin.Text, smtp._message.change));
+        }
+
+        private void OpenPin(object sender, MouseButtonEventArgs e)
+        {
+            MainWindow.mainWindow.frame.Navigate(new Pages.Pincode());
         }
     }
 }

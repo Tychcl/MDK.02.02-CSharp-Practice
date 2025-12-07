@@ -4,7 +4,6 @@
       xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
       xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
       xmlns:local="clr-namespace:Regin.Pages"
-      xmlns:uc="clr-namespace:Regin.Elements"
         xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
   mc:Ignorable="d"
   d:DesignHeight="450"
@@ -71,7 +70,7 @@
                     <PasswordBox x:Name="TbPassword"
                                 VerticalAlignment="Top"
                                 Height="26"
-                                KeyDown="SetPassword"/>
+                                KeyUp="SetPassword"/>
 
                     <Label Content="Confirm password:"
        VerticalAlignment="Top"/>
@@ -79,7 +78,7 @@
                     <PasswordBox x:Name="TbConfirmPassword"
             VerticalAlignment="Top"
             Height="26"
-            KeyDown="SetPassword"/>
+            KeyUp="SetPassword"/>
 
                     <Button Content="Confirm"
                             Margin="0, 5, 0, 0"
@@ -91,7 +90,7 @@
                 <Label Content="Back"
                    Margin="5,0,10,5"
                    VerticalAlignment="Bottom"
-                   Foreground="#FF673AB2"
+                   Foreground="#FF73C700"
                    FontSize="10"
                    MouseDown="Back"
                    HorizontalAlignment="Left"

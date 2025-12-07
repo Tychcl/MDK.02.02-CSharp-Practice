@@ -1,0 +1,69 @@
+﻿<Page x:Class="Regin.Pages.SetPin"
+      xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+      xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+      xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+      xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+      xmlns:local="clr-namespace:Regin.Pages"
+        xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
+  mc:Ignorable="d"
+    d:DesignHeight="450"
+    d:DesignWidth="800"
+    Title="Login"
+    TextElement.Foreground="{DynamicResource MaterialDesignBody}"
+    TextElement.FontWeight="Regular"
+    TextElement.FontSize="13"
+    TextOptions.TextFormattingMode="Ideal"
+    TextOptions.TextRenderingMode="Auto"
+    Background="{DynamicResource MaterialDesignPaper}"
+    FontFamily="{DynamicResource MaterialDesignFont}">
+    <Grid>
+        <materialDesign:Card Height="330"
+                   VerticalAlignment="Center"
+                   HorizontalAlignment="Center"
+                   Width="300">
+            <Grid>
+                <Image x:Name="IUser"
+             HorizontalAlignment="Center"
+             Height="100"
+             Margin="32"
+             VerticalAlignment="Top"
+             Width="100"
+             Source="/Images/lock.png">
+                </Image>
+
+                <Label
+             Margin="10,150,10,0"
+             HorizontalContentAlignment="Center"
+             Content="Choose your 4 chars pincode."
+             VerticalAlignment="Top"/>
+
+                <Label Content="Enter pincode:"
+             Margin="10,180,10,0"
+             VerticalAlignment="Top"/>
+
+                <TextBox x:Name="TbLogin"
+               Height="23"
+               Margin="10,205,10,0"
+               TextWrapping="Wrap"
+               Text=""
+               VerticalAlignment="Top"
+               MaxLength="4"/>
+
+                <Button x:Name="but"
+                Content="Confirm"
+                    Margin="10, 0, 10, 30"
+                    VerticalAlignment="Bottom"
+                    Click="Confirm"/>
+
+                <Label Content="Back"
+             Margin="10,0 ,10,5"
+             VerticalAlignment="Bottom"
+             Foreground="#FF73C700"
+             FontSize="10"
+             MouseDown="Back"
+             HorizontalAlignment="Left"
+             Width="62"/>
+            </Grid>
+        </materialDesign:Card>
+    </Grid>
+</Page>

@@ -17,6 +17,7 @@ namespace Regin.Pages
 {
     public class Common
     {
+        public User? user { get; private set; }
         public bool correct = false;
         private Context con = new Context();
         public Label LNameUser { get; set; }
@@ -40,10 +41,12 @@ namespace Regin.Pages
                 if (user is not null)
                 {
                     correct = true;
+                    this.user = user;
                     CorrectLogin(user);
                 }
                 else
                 {
+                    this.user = null;
                     SetNotification(LNameUser ,"User not found", Brushes.Red);
                 }
             }

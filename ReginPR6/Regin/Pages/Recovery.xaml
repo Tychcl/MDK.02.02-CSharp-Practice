@@ -5,7 +5,7 @@
       xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
       xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
       xmlns:local="clr-namespace:Regin.Pages"
-        xmlns:uc="clr-namespace:Regin.Elements"
+        xmlns:uc="clr-namespace:UC;assembly=UC"
   mc:Ignorable="d"
   d:DesignHeight="450"
   d:DesignWidth="800"
@@ -69,14 +69,23 @@
                         Margin="10, 0, 10, 35"
                         Click="Button_Click"/>
 
-                <Label Content="Back"
+                <Label Content="Use pincode"
                    Margin="0,373,10,0"
                    VerticalAlignment="Top"
-                   Foreground="#FF673AB2"
+                   Foreground="#FF73C700"
                    FontSize="10"
-                   MouseDown="OpenLogin"
+                   MouseDown="OpenPin"
                    HorizontalAlignment="Right"
                    Width="62"/>
+
+                <Label Content="Back"
+Margin="10,0 ,10,5"
+VerticalAlignment="Bottom"
+Foreground="#FF73C700"
+FontSize="10"
+MouseDown="OpenLogin"
+HorizontalAlignment="Left"
+Width="62"/>
             </Grid>
         </materialDesign:Card>
     </Grid>

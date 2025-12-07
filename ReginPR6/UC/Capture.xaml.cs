@@ -14,7 +14,7 @@ using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
 
-namespace Regin.Elements
+namespace UC
 {
     /// <summary>
     /// Логика взаимодействия для Capture.xaml

@@ -20,8 +20,8 @@ namespace Regin.Classes
         private static string GenToken()
         {
             Random random = new Random();
-            string Chars = "FDSAFASGfdsfGSDFGSDFGFDSF12345678988884441111";
-            return new string(Enumerable.Repeat(Chars, 15).Select(x => x[random.Next(Chars.Length)]).ToArray());
+            string Chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+            return new string(Enumerable.Repeat(Chars, 6).Select(x => x[random.Next(Chars.Length)]).ToArray());
         }
 
         private static string GetMessage(string code,_message type)

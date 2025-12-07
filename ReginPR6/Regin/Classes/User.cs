@@ -18,11 +18,10 @@ namespace Regin.Classes
         public DateTime Created { get; set; }
         
         public User(string login,  string password,
-                    string name, byte[]? image = null, int? pincode = null)
+                    string name, byte[]? image = null)
         {
             Login = login;
             Password = password;
-            PinCode = pincode;
             Name = name;
             Image = image;
             Updated = DateTime.Now;

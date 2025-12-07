@@ -1,6 +1,7 @@
 ﻿using Regin.Classes;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -24,6 +25,7 @@ namespace Regin.Pages
     {
         private string Code;
         private string Email;
+        private string Mes;
         private smtp._message ype;
         Thread t;
         private User? user = null;
@@ -67,6 +69,7 @@ namespace Regin.Pages
             {
                 if (TbLogin.Text.Length == Code.Length && TbLogin.Text == Code)
                 {
+                    Mes = "Successful";
                     switch (ype)
                     {
                         case smtp._message.change:
@@ -78,36 +81,50 @@ namespace Regin.Pages
                                 {
                                     var user = con.Users.ToList().Find(x => x.Login == Email);
                                     user.Password = pas;
+                                    user.Updated = DateTime.Now;
                                     con.SaveChanges();
                                 }
                             });
                             t.Start();
-                            MessageBox.Show("Password changed");
-                            Back(null, null);
                             break;
                         case smtp._message.verify:
-                            using (var con = new Context())
+                            if (user is not null)
                             {
-                                con.Add(user);
-                                con.SaveChanges();
+                                using (var con = new Context())
+                                {
+                                    con.Users.Add(user);
+                                    con.SaveChanges();
+                                }
                             }
-                            MessageBox.Show("Successful registration");
-                            Back(null, null);
+                            else
+                            {
+                                Mes = "Successful authorization";
+                                if (MainWindow.previous == MainWindow.page.login)
+                                {
+                                    MessageBoxResult Result = MessageBox.Show("Set pincode for next authorization?", "Pincode", MessageBoxButton.YesNo);
+                                    if (Result == MessageBoxResult.Yes)
+                                    {
+                                        MainWindow.mainWindow.frame.Navigate(new Pages.SetPin(Email));
+                                        return;
+                                    }
+                                }
+                            }
                             break;
                     }
-
+                    Back(null, null);
                 }
             }
             catch(Exception ex)
             {
-                MessageBox.Show("Ошибка: "+ex.Message);
+                Debug.WriteLine("Ошибка: "+ex);
+                Mes = "Error";
                 Back(null, null);
             }
         }
 
         private void Back(object sender, MouseButtonEventArgs e)
         {
-            MainWindow.mainWindow.frame.Navigate(new Pages.Login());
+            MainWindow.mainWindow.frame.Navigate(new Pages.Login(Mes));
         }
     }
 }

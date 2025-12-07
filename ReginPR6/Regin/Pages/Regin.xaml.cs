@@ -1,6 +1,8 @@
-﻿using Microsoft.Win32;
-using System;
+﻿using System;
 using System.Collections.Generic;
+using System.Drawing;
+using System.Drawing.Imaging;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -15,8 +17,7 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
-using System.Drawing.Imaging;
-using System.Drawing;
+using Microsoft.Win32;
 using Regin.Classes;
 
 namespace Regin.Pages
@@ -33,6 +34,7 @@ namespace Regin.Pages
         public Regin()
         {
             InitializeComponent();
+            MainWindow.previous = MainWindow.page.regin;
         }
 
         private void SetLogin(object sender, RoutedEventArgs e)
@@ -42,10 +44,20 @@ namespace Regin.Pages
                 Common.SetNotification(LNameUser, "Wrong login type", System.Windows.Media.Brushes.Red);
                 login = false;
             }
-            else
+            using (var con = new Context())
             {
-                login = true;
+                var u = con.Users.ToList().Find(x => x.Login == TbLogin.Text);
+                if(u is null)
+                {
+                    Common.SetNotification(LNameUser, "", System.Windows.Media.Brushes.Red);
+                    login = true;
+                }
+                else{
+                    Common.SetNotification(LNameUser, "User with this login exists", System.Windows.Media.Brushes.Red);
+                    login = false;
+                }
             }
+            
         }
 
         private void Button_Click(object sender, RoutedEventArgs e)
@@ -78,6 +90,7 @@ namespace Regin.Pages
             }
             else
             {
+                Common.SetNotification(LNameUser, "", System.Windows.Media.Brushes.Red);
                 password = true;
             }
         }
@@ -88,17 +101,40 @@ namespace Regin.Pages
             OFD.Filter += "Images (*.BMP;*.JPG;*.PNG)|*.BMP;*.JPG;*.PNG";
             if(OFD.ShowDialog() == true)
             {
-                Bitmap bitmap1 = new Bitmap(OFD.FileName); 
-                Graphics Gr1 = Graphics.FromImage(bitmap1);
-                Bitmap bitmap2 = new Bitmap(256, 256, Gr1);
-                Graphics Gr2 = Graphics.FromImage(bitmap2);
-                System.Drawing.Rectangle compressionRectangle = new System.Drawing.Rectangle
-                  (0, 0, 256, 256);
-                Gr2.DrawImage(bitmap1, compressionRectangle);
+                Bitmap bitmap1 = new Bitmap(OFD.FileName);
+                Bitmap bitmap2 = new Bitmap(256, 256);
+
+                using (Graphics Gr2 = Graphics.FromImage(bitmap2))
+                {
+                    Gr2.DrawImage(bitmap1, new System.Drawing.Rectangle(0, 0, 256, 256));
+                }
+
                 ImageConverter converter = new ImageConverter();
                 image = (byte[])converter.ConvertTo(bitmap2, typeof(byte[]));
-                IUser.Source = (BitmapImage)converter.ConvertTo(bitmap2, typeof(BitmapImage));
+
+                BitmapImage bitmapImage = new BitmapImage();
+                using (MemoryStream memory = new MemoryStream())
+                {
+                    bitmap2.Save(memory, System.Drawing.Imaging.ImageFormat.Png);
+                    memory.Position = 0;
+
+                    bitmapImage.BeginInit();
+                    bitmapImage.StreamSource = memory;
+                    bitmapImage.CacheOption = BitmapCacheOption.OnLoad;
+                    bitmapImage.EndInit();
+                    bitmapImage.Freeze(); 
+                }
+
+                IUser.Source = bitmapImage;
+
+                bitmap1.Dispose();
+                bitmap2.Dispose();
             }
+        }
+
+        private void Back(object sender, MouseButtonEventArgs e)
+        {
+            MainWindow.mainWindow.frame.Navigate(new Pages.Login());
         }
     }
 }

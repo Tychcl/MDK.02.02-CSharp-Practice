@@ -9,9 +9,25 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <None Remove="Images\gmail.png" />
+    <None Remove="Images\ic-user.jpg" />
+    <None Remove="Images\lock.png" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="MaterialDesignThemes" Version="5.3.0" />
     <PackageReference Include="Pomelo.EntityFrameworkCore.MySql" Version="9.0.0" />
     <PackageReference Include="System.Drawing.Common" Version="10.0.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\UC\UC.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Resource Include="Images\gmail.png" />
+    <Resource Include="Images\ic-user.jpg" />
+    <Resource Include="Images\lock.png" />
   </ItemGroup>
 
 </Project>

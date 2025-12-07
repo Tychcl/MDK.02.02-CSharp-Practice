@@ -9,24 +9,16 @@ using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
 
-namespace Regin
+namespace UC
 {
     /// <summary>
     /// Interaction logic for MainWindow.xaml
     /// </summary>
     public partial class MainWindow : Window
     {
-        public enum page
-        {
-            login, regin, recovery
-        }
-        public static page previous;
-        public static MainWindow mainWindow;
         public MainWindow()
         {
             InitializeComponent();
-            mainWindow = this;
-            frame.Navigate(new Pages.Login());
         }
     }
 }
