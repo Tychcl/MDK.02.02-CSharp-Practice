@@ -49,9 +49,9 @@ namespace Regin.Pages
                 {
                     Common.SetNotification(LNameUser, "User not exists", Brushes.Red);
                 }
-                else if(common.user.Password != TbPassword.Password & common.user.PinCode.ToString() != TbPassword.Password)
+                else if(common.user.Password != TbPassword.Password)
                 {
-                    Common.SetNotification(LNameUser, "Wrong password or pincode.", Brushes.Red);
+                    Common.SetNotification(LNameUser, "Wrong password", Brushes.Red);
                 }
                 else if (!cap)
                 {

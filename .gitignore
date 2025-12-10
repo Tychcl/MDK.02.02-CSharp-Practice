@@ -3,6 +3,8 @@
 ##
 ## Get latest from https://github.com/github/gitignore/blob/main/VisualStudio.gitignore
 
+pr7_http/docker/db/data/*
+
 # User-specific files
 *.rsuser
 *.suo

@@ -83,7 +83,15 @@ namespace Regin.Pages
 
         private void SetPassword(object sender, KeyEventArgs e)
         {
-            if(TbPassword.Password != TbConfirmPassword.Password)
+            if (e.Key == Key.Enter && TbPassword.Password == TbConfirmPassword.Password)
+            {
+                Button_Click(null, null);
+            }
+            else
+            {
+                Common.SetNotification(LNameUser, "", System.Windows.Media.Brushes.Green);
+            }
+            if (TbPassword.Password != TbConfirmPassword.Password)
             {
                 Common.SetNotification(LNameUser, "Password not equals.", System.Windows.Media.Brushes.Red);
                 password = false;
