@@ -1,15 +1,22 @@
 ﻿using HtmlAgilityPack;
+using Microsoft.Win32;
+using System.Diagnostics;
+using System.IO;
 using System.Net;
 using System.Text;
-using System.IO;
-using Microsoft.Win32;
+using System.Xml;
 
 namespace pr7;
 static class Program
 {
     //private static readonly HttpClient _httpClient = new HttpClient();
+    static Stream path = File.Create("output.txt");
+    static TextWriterTraceListener listener = new TextWriterTraceListener(path);
+
     static async Task Main(string[] args)
     {
+        Trace.Listeners.Add(listener);
+        Trace.AutoFlush = true;
         CookieCollection? SessionCookie = new CookieCollection();
         Console.ForegroundColor = ConsoleColor.White;
         Console.WriteLine("Введите одну из команд");
@@ -51,7 +58,7 @@ static class Program
                     m = await ParseZamenu();
                     break;
                 case "/save":
-                    Save(m);
+                    Save();
                     break;
                 case "/add":
                     if (SessionCookie is not null && SessionCookie.Count > 0 && SessionCookie.First(x => x.Name == "token") is not null)
@@ -221,15 +228,15 @@ static class Program
         {
             Console.ForegroundColor = ConsoleColor.Magenta;
         }
+        Debug.WriteLine(message);
         Console.WriteLine(message);
     }
 
-    static bool Save(string str)
+    static bool Save()
     {
         try
         {
-            string path = Directory.GetCurrentDirectory() + "\\output.txt";
-            File.WriteAllText(path, str);
+            Trace.Flush();
             Output("Успешно сохранено: "+path, HttpStatusCode.OK);
             return true;
         }
