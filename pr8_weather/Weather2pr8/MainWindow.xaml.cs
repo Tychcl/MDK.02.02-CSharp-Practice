@@ -9,6 +9,7 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
+using Weather2pr8.Classes;
 
 namespace Weather2pr8
 {
@@ -17,30 +18,31 @@ namespace Weather2pr8
     /// </summary>
     public partial class MainWindow : Window
     {
-        static HttpClient httpClient = new HttpClient();
-        private readonly string ApiKey = "demo_yandex_weather_api_key_ca6d09349ba0";
-        private readonly string url = "https://api.weather.yandex.ru/v2/forecast?";
         public MainWindow()
         {
             InitializeComponent();
-            //MessageBox.Show();
-            GetWeather();
+            http(55.75222f, 37.61556f);
         }
 
-        private async Task<List<WeatherData>> GetWeather(string City = "Москва", 
-                                                        string lat = "55.7522", string lon = "37.6156")
+        public async Task http(float lat, float lon)
         {
-            List<WeatherData> weather = new List<WeatherData>();
-            var uriBuilder = new UriBuilder("https://api.gismeteo.net/v4/weather/forecast/h6");
-            var query = System.Web.HttpUtility.ParseQueryString(uriBuilder.Query);
-            query["locale"] = "ru-RU";
-            query["name"] = City;
-            query["param2"] = "value2";
-            uriBuilder.Query = query.ToString();
+            panel.Children.Clear();
+            Response response = await GetWeather.Get(lat, lon);
+            foreach(var el in response.forecasts)
+            {
+                if(el.hours.Count != 0)
+                {
+                    panel.Children.Add(new Plate(el));
+                }
+            }
+        }
 
-            HttpResponseMessage response = await httpClient.GetAsync(uriBuilder.Uri);
-
-            return weather;
+        private async void search(object sender, RoutedEventArgs e)
+        {
+            NominatimResult result = await NominatimResult.Get(tb.Text);
+            float.TryParse(result.lat.Replace('.', ','), out float lat);
+            float.TryParse(result.lon.Replace('.', ','), out float lon);
+            await http(lat, lon);
         }
     }
 }

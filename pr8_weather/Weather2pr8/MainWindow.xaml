@@ -5,8 +5,19 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:Weather2pr8"
         mc:Ignorable="d"
-        Title="MainWindow" Height="450" Width="800">
+        Background="Black"
+        Title="MainWindow" Height="450" SizeToContent="Width">
     <Grid>
-        
+        <Grid.RowDefinitions>
+            <RowDefinition Height="25"/>
+            <RowDefinition/>
+        </Grid.RowDefinitions>
+        <StackPanel Orientation="Horizontal">
+            <TextBox x:Name="tb" Width="250"/>
+            <Button Click="search" Width="25" Content="🔍"/>
+        </StackPanel>
+        <ScrollViewer HorizontalScrollBarVisibility="Hidden" HorizontalAlignment="Right" Grid.Row="1">
+            <StackPanel x:Name="panel"/>
+        </ScrollViewer>
     </Grid>
 </Window>
