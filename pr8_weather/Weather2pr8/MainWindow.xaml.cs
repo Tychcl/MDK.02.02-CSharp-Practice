@@ -18,7 +18,8 @@ namespace Weather2pr8
     public partial class MainWindow : Window
     {
         static HttpClient httpClient = new HttpClient();
-        private readonly string url = "https://api.gismeteo.net/v4/weather/forecast/h6?locale=ru-RU&";
+        private readonly string ApiKey = "demo_yandex_weather_api_key_ca6d09349ba0";
+        private readonly string url = "https://api.weather.yandex.ru/v2/forecast?";
         public MainWindow()
         {
             InitializeComponent();
