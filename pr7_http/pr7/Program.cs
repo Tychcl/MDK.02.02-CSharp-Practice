@@ -1,11 +1,14 @@
 ﻿using HtmlAgilityPack;
 using System.Net;
 using System.Text;
+using System.IO;
+using Microsoft.Win32;
 
 namespace pr7;
 static class Program
 {
-    static void Main(string[] args)
+    //private static readonly HttpClient _httpClient = new HttpClient();
+    static async Task Main(string[] args)
     {
         CookieCollection? SessionCookie = new CookieCollection();
         Console.ForegroundColor = ConsoleColor.White;
@@ -22,6 +25,7 @@ static class Program
                     if(message.Length == 3)
                     {
                         SessionCookie = SignIn(message[1], message[2], out m, out code);
+                        Output(m, code);
                     }
                     else
                     {
@@ -34,6 +38,7 @@ static class Program
                     if (SessionCookie is not null && SessionCookie.Count > 0 && SessionCookie.First(x=>x.Name == "token") is not null)
                     {
                         Parse(SessionCookie, out m, out code);
+                        Output(m, code);
                     }
                     else
                     {
@@ -42,16 +47,33 @@ static class Program
                         continue;
                     }
                     break;
+                case "/parseZamenu":
+                    m = await ParseZamenu();
+                    break;
+                case "/save":
+                    Save(m);
+                    break;
+                case "/add":
+                    if (SessionCookie is not null && SessionCookie.Count > 0 && SessionCookie.First(x => x.Name == "token") is not null)
+                    {
+                        Add(SessionCookie, out m, out code);
+                        Output(m, code);
+                    }
+                    else
+                    {
+                        Console.ForegroundColor = ConsoleColor.Magenta;
+                        Console.WriteLine($"Сначала надо войти для кукисов");
+                        continue;
+                    }
+                    break;
+                case "/help":
+                    Console.WriteLine("/signin <Логин> <Пароль> - Получение токена для сайта авика");
+                    Console.WriteLine("/parse - Парсинг главной страницы новостей авика");
+                    Console.WriteLine("/parseZamenu - Парсинг замен пар");
+                    Console.WriteLine("/save - сохранение в txt файл последнего сообщения");
+                    Console.WriteLine("/add - добавить новость");
+                    break;
             }
-            if(code == HttpStatusCode.OK)
-            {
-                Console.ForegroundColor = ConsoleColor.Green;
-            }
-            else
-            {
-                Console.ForegroundColor = ConsoleColor.Magenta;
-            }
-            Console.WriteLine(m);
         }
     }
 
@@ -60,49 +82,116 @@ static class Program
         try
         {
             string url = "http://127.0.0.1:8080/ajax/login.php";
-            HttpWebRequest r = (HttpWebRequest)WebRequest.Create(url);
-            r.Method = "POST";
-            r.ContentType = "application/x-www-form-urlencoded";
-            r.CookieContainer = new CookieContainer();
-            string query = $"login={login}&password={password}";
-            byte[] data = Encoding.ASCII.GetBytes(query);
-            r.ContentLength = data.Length;
-            using (var s = r.GetRequestStream())
+            var requestContent = new FormUrlEncodedContent(new[]
             {
-                s.Write(data, 0, data.Length);
-            }
-            HttpWebResponse response = (HttpWebResponse)r.GetResponse();
-            message = new StreamReader(response.GetResponseStream()).ReadToEnd();
+            new KeyValuePair<string, string>("login", login),
+            new KeyValuePair<string, string>("password", password)
+        });
+
+            var handler = new HttpClientHandler
+            {
+                UseCookies = true,
+                CookieContainer = new CookieContainer()
+            };
+
+            using var client = new HttpClient(handler);
+
+            var response = client.PostAsync(url, requestContent).Result;
+            message = response.Content.ReadAsStringAsync().Result;
             code = response.StatusCode;
-            return response.Cookies;
+
+            return handler.CookieContainer.GetCookies(new Uri(url));
         }
-        catch(WebException ex)
+        catch (AggregateException ex)
         {
-            code = HttpStatusCode.Forbidden;
-            message = new StreamReader(ex.Response.GetResponseStream()).ReadToEnd();
+            if (ex.InnerException is HttpRequestException httpEx && httpEx.StatusCode.HasValue)
+            {
+                code = httpEx.StatusCode.Value;
+                message = ex.Message;
+            }
+            else
+            {
+                code = HttpStatusCode.Forbidden;
+                message = ex.Message;
+            }
             return null;
         }
     }
 
-    static CookieCollection? Parse(CookieCollection cookie, out string message, out HttpStatusCode code)
+    static void Parse(CookieCollection cookie, out string message, out HttpStatusCode code)
     {
         try
         {
             string url = "http://127.0.0.1:8080/main";
-            HttpWebRequest r = (HttpWebRequest)WebRequest.Create(url);
-            r.CookieContainer = new CookieContainer();
-            r.CookieContainer.Add(cookie);
-            HttpWebResponse response = (HttpWebResponse)r.GetResponse();
-            message = new StreamReader(response.GetResponseStream()).ReadToEnd();
+            var handler = new HttpClientHandler
+            {
+                UseCookies = true,
+                CookieContainer = new CookieContainer()
+            };
+            foreach (Cookie c in cookie)
+            {
+                handler.CookieContainer.Add(new System.Net.Cookie(c.Name, c.Value, c.Path, c.Domain));
+            }
+
+            using var client = new HttpClient(handler);
+
+            var response = client.GetAsync(url).Result;
+            message = HtmlConvert(response.Content.ReadAsStringAsync().Result);
             code = response.StatusCode;
-            return response.Cookies;
+        }
+        catch (AggregateException ex)
+        {
+            if (ex.InnerException is HttpRequestException httpEx && httpEx.StatusCode.HasValue)
+            {
+                code = httpEx.StatusCode.Value;
+            }
+            else
+            {
+                code = HttpStatusCode.Forbidden;
+            }
+            message = ex.Message;
+        }
+    }
+
+    static async Task<string> ParseZamenu()
+    {
+        string message;
+        HttpStatusCode code;
+        try
+        {
+            string url = "https://permaviat.ru/raspisanie-zamen/";
+            HttpWebRequest r = (HttpWebRequest)WebRequest.Create(url);
+            using (var response = (HttpWebResponse)await r.GetResponseAsync())
+            {
+                message = HtmlConvertZamenu(new StreamReader(response.GetResponseStream()).ReadToEnd());
+                code = response.StatusCode;
+            }
+            Output(message, code);
+            return message;
         }
         catch (WebException ex)
         {
             code = HttpStatusCode.Forbidden;
             message = new StreamReader(ex.Response.GetResponseStream()).ReadToEnd();
-            return null;
+            Output(message, code);
+            return message;
         }
+    }
+
+    static string HtmlConvertZamenu(string html)
+    {
+        var doc = new HtmlDocument();
+        doc.LoadHtml(html);
+        var node = doc.DocumentNode;
+        IEnumerable<HtmlNode> news = node.Descendants(0).Where(x => x.HasClass("file_link"));
+        string str = "";
+        foreach (var el in news)
+        {
+            var date = el.ChildNodes[0].InnerText;
+            var link = el.ChildNodes[0].GetAttributeValue("href", "none");
+            str += $"Дата: {date}\nСсылка: {link}\n\n";
+        }
+        return str;
     }
 
     static string HtmlConvert(string html)
@@ -117,7 +206,83 @@ static class Program
             var src = el.ChildNodes[1].GetAttributeValue("src", "none");
             var name = el.ChildNodes[3].InnerText;
             var des = el.ChildNodes[5].InnerText;
-            str
+            str += $"Название: {name}\nИзображение: {src}\nОписание: {des}\n\n";
         }
+        return str;
+    }
+    
+    static void Output(string message, HttpStatusCode code)
+    {
+        if (code == HttpStatusCode.OK)
+        {
+            Console.ForegroundColor = ConsoleColor.Green;
+        }
+        else
+        {
+            Console.ForegroundColor = ConsoleColor.Magenta;
+        }
+        Console.WriteLine(message);
+    }
+
+    static bool Save(string str)
+    {
+        try
+        {
+            string path = Directory.GetCurrentDirectory() + "\\output.txt";
+            File.WriteAllText(path, str);
+            Output("Успешно сохранено: "+path, HttpStatusCode.OK);
+            return true;
+        }
+        catch (Exception ex)
+        {
+            Output("Ошибка сохранения: "+ex.Message, HttpStatusCode.BadRequest);
+            return false;
+        }        
+    }
+
+    static void Add(CookieCollection cookie, out string message, out HttpStatusCode code)
+    {
+        try
+        {
+            Console.ForegroundColor = ConsoleColor.Yellow;
+            Console.Write("Ссылка на изображение: ");
+            string image = Console.ReadLine();
+            Console.Write("Наименование: ");
+            string name = Console.ReadLine();
+            Console.Write("Описание: ");
+            string des = Console.ReadLine();
+            string url = "http://127.0.0.1:8080/ajax/add.php";
+            var requestContent = new FormUrlEncodedContent(new[]
+            {
+            new KeyValuePair<string, string>("src", image),
+            new KeyValuePair<string, string>("name", name),
+            new KeyValuePair<string, string>("description", des)
+        });
+
+            var handler = new HttpClientHandler
+            {
+                UseCookies = true,
+                CookieContainer = new CookieContainer()
+            };
+
+            using var client = new HttpClient(handler);
+
+            var response = client.PostAsync(url, requestContent).Result;
+            message = response.Content.ReadAsStringAsync().Result;
+            code = response.StatusCode;
+        }
+        catch (AggregateException ex)
+        {
+            if (ex.InnerException is HttpRequestException httpEx && httpEx.StatusCode.HasValue)
+            {
+                code = httpEx.StatusCode.Value;
+                message = ex.Message;
+            }
+            else
+            {
+                code = HttpStatusCode.Forbidden;
+                message = ex.Message;
+            }
+        }            
     }
 }
