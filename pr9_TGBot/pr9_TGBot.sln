@@ -3,7 +3,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.14.36414.22 d17.14
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WeatherPR8", "WeatherPR8\WeatherPR8.csproj", "{F4F46B60-21BC-4C57-8CCB-3AA9F58F0CDD}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "pr9_TGBot", "pr9_TGBot\pr9_TGBot.csproj", "{1C097C4A-75B0-40E4-A500-C92D005711BB}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -11,15 +11,15 @@ Global
 		Release|Any CPU = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{F4F46B60-21BC-4C57-8CCB-3AA9F58F0CDD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{F4F46B60-21BC-4C57-8CCB-3AA9F58F0CDD}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{F4F46B60-21BC-4C57-8CCB-3AA9F58F0CDD}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{F4F46B60-21BC-4C57-8CCB-3AA9F58F0CDD}.Release|Any CPU.Build.0 = Release|Any CPU
+		{1C097C4A-75B0-40E4-A500-C92D005711BB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1C097C4A-75B0-40E4-A500-C92D005711BB}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1C097C4A-75B0-40E4-A500-C92D005711BB}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1C097C4A-75B0-40E4-A500-C92D005711BB}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
-		SolutionGuid = {6ACDBD60-AE73-4604-93CD-431AF5094CE7}
+		SolutionGuid = {EF42E2F9-AAEC-4B9D-9E1F-A1BB3CC69FFB}
 	EndGlobalSection
 EndGlobal
