@@ -24,7 +24,7 @@ namespace Weather2pr8.Classes
             Response response = new Response();
             using (HttpClient client = new HttpClient())
             {
-                using (HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Get, $"{url}?lat={lat}&lon={lon}&lang=ru_RU".Replace(',', '.')))
+                using (HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Get, $"{url}?lat={lat}&lon={lon}&lang=ru_RU&limit=7".Replace(',', '.')))
                 {
                     request.Headers.Add("X-Yandex-Weather-Key", ApiKey);
                     using (var r = await client.SendAsync(request))
